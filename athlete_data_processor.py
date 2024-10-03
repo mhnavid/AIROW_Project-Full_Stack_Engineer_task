@@ -2,6 +2,7 @@
 AthleteDataProcessor: A class to process athlete data including activity overview, 
 heart rate samples, and lap data.
 """
+
 import json
 
 
@@ -18,17 +19,31 @@ class AthleteDataProcessor:
         self.samples = samples
         self.laps = laps
 
+    def check_json_key(self, json_data, key):
+        """
+        Check for the key exists or not in json data.
+        """
+        if key in json_data:
+            return json_data[key]
+        return "Null"
+
     def process_activity_overview(self):
         """
         Processes the activity overview from the summary JSON.
         """
-        summary_json_data = json.loads(self.summary)
+        try:
+            summary_json_data = json.loads(self.summary)
+        except ValueError:
+            return "Invalid Json Format!"
+
         output_data = {
-            "userId": summary_json_data["userId"],
-            "type": summary_json_data["activityType"],
-            "device": summary_json_data["deviceName"],
-            "maxHeartRate": summary_json_data["maxHeartRateInBeatsPerMinute"],
-            "duration": summary_json_data["durationInSeconds"],
+            "userId": self.check_json_key(summary_json_data, "userId"),
+            "type": self.check_json_key(summary_json_data, "activityType"),
+            "device": self.check_json_key(summary_json_data, "deviceName"),
+            "maxHeartRate": self.check_json_key(
+                summary_json_data, "maxHeartRateInBeatsPerMinute"
+            ),
+            "duration": self.check_json_key(summary_json_data, "durationInSeconds"),
         }
 
         return output_data
@@ -39,9 +54,14 @@ class AthleteDataProcessor:
         """
         heart_rate_samples = []
         idx = 0
-        for sample in json.loads(self.samples):
-            if sample["sample-type"] == "2":
-                heart_rates = sample["data"].split(",")
+        try:
+            sample_json_data = json.loads(self.samples)
+        except ValueError:
+            return "Invalid Json Format!"
+
+        for sample in sample_json_data:
+            if self.check_json_key(sample, "sample-type") == "2":
+                heart_rates = self.check_json_key(sample, "data").split(",")
                 for data in heart_rates:
                     if data != "null":
                         format_data = {"sampleIndex": idx, "heartRate": data}
@@ -54,11 +74,15 @@ class AthleteDataProcessor:
         Processes laps data from the laps JSON.
         """
         processed_lap_data = []
-        for lap in json.loads(self.laps):
+        try:
+            lap_json_data = json.loads(self.laps)
+        except ValueError:
+            return "Invalid Json Format!"
+        for lap in lap_json_data:
             lap_data = {
-                "startTime": lap["startTimeInSeconds"],
-                "distance": lap["totalDistanceInMeters"],
-                "duration": lap["timerDurationInSeconds"],
+                "startTime": self.check_json_key(lap, "startTimeInSeconds"),
+                "distance": self.check_json_key(lap, "totalDistanceInMeters"),
+                "duration": self.check_json_key(lap, "timerDurationInSeconds"),
                 "heartRateSamples": self.process_heart_rate_sample(),
             }
 
