@@ -1,14 +1,27 @@
+"""
+AthleteDataProcessor: A class to process athlete data including activity overview, 
+heart rate samples, and lap data.
+"""
 import json
 
 
 class AthleteDataProcessor:
+    """
+    This class processes the athlete data and returns the final result in JSON format.
+    """
 
     def __init__(self, summary, samples, laps):
+        """
+        Constructs the necessary attributes for the AthleteDataProcessor object.
+        """
         self.summary = summary
         self.samples = samples
         self.laps = laps
 
     def process_activity_overview(self):
+        """
+        Processes the activity overview from the summary JSON.
+        """
         summary_json_data = json.loads(self.summary)
         output_data = {
             "userId": summary_json_data["userId"],
@@ -21,6 +34,9 @@ class AthleteDataProcessor:
         return output_data
 
     def process_heart_rate_sample(self):
+        """
+        Processes heart rate samples from the samples JSON.
+        """
         heart_rate_samples = []
         idx = 0
         for sample in json.loads(self.samples):
@@ -34,6 +50,9 @@ class AthleteDataProcessor:
         return heart_rate_samples
 
     def process_laps_data(self):
+        """
+        Processes laps data from the laps JSON.
+        """
         processed_lap_data = []
         for lap in json.loads(self.laps):
             lap_data = {
@@ -48,6 +67,9 @@ class AthleteDataProcessor:
         return processed_lap_data
 
     def get_final_result(self):
+        """
+        Combines processed activity overview and laps data into a final JSON result.
+        """
         output_json = {}
         output_json["activityOverview"] = self.process_activity_overview()
         output_json["laps"] = self.process_laps_data()
@@ -56,5 +78,6 @@ class AthleteDataProcessor:
 
 if __name__ == "__main__":
     from data import SUMMARY, SAMPLES, LAPS
+
     process = AthleteDataProcessor(SUMMARY, SAMPLES, LAPS)
     print(process.get_final_result())
