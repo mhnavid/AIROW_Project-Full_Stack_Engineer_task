@@ -3,113 +3,73 @@ import json
 from athlete_data_processor import (
     AthleteDataProcessor,
 )
+from test_data import (
+    SUMMARY_1,
+    SUMMARY_2,
+    SUMMARY_3,
+    SAMPLES_1,
+    SAMPLES_2,
+    LAPS_1,
+    LAPS_2,
+    LAPS_3,
+    PROCESS_ACTIVITY_OVERVIEW_EXPECTED_1,
+    PROCESS_ACTIVITY_OVERVIEW_EXPECTED_2,
+    PROCESS_ACTIVITY_OVERVIEW_EXPECTED_3,
+    PROCESS_HEART_RATE_SAMPLE_EXPECTED_1,
+    PROCESS_HEART_RATE_SAMPLE_EXPECTED_2,
+    PROCESS_LAPS_DATA_1,
+    PROCESS_LAPS_DATA_2,
+    PROCESS_LAPS_DATA_3,
+)
 
 
 class TestAthleteDataProcessor(unittest.TestCase):
 
     def setUp(self):
-        """
-        Set up test data before each test.
-        """
-        self.summary = json.dumps(
-            {
-                "userId": "12345",
-                "activityType": "Running",
-                "deviceName": "Watch X",
-                "maxHeartRateInBeatsPerMinute": 180,
-                "durationInSeconds": 3600,
-            }
-        )
-
-        self.samples = json.dumps(
-            [
-                {"sample-type": "2", "data": "120,130,140,null,150"},
-                {"sample-type": "1", "data": "200,220,240"},
-            ]
-        )
-
-        self.laps = json.dumps(
-            [
-                {
-                    "startTimeInSeconds": 0,
-                    "totalDistanceInMeters": 1000,
-                    "timerDurationInSeconds": 600,
-                },
-                {
-                    "startTimeInSeconds": 600,
-                    "totalDistanceInMeters": 1000,
-                    "timerDurationInSeconds": 600,
-                },
-            ]
-        )
-
-        self.processor = AthleteDataProcessor(self.summary, self.samples, self.laps)
+        self.processor_1 = AthleteDataProcessor(SUMMARY_1, SAMPLES_1, LAPS_1)
+        self.processor_2 = AthleteDataProcessor(SUMMARY_2, SAMPLES_2, LAPS_2)
+        self.processor_3 = AthleteDataProcessor(SUMMARY_3, SAMPLES_1, LAPS_3)
 
     def test_process_activity_overview(self):
-        expected_output = {
-            "userId": "12345",
-            "type": "Running",
-            "device": "Watch X",
-            "maxHeartRate": 180,
-            "duration": 3600,
-        }
-        result = self.processor.process_activity_overview()
-        self.assertEqual(result, expected_output)
+        result_1 = self.processor_1.process_activity_overview()
+        result_2 = self.processor_2.process_activity_overview()
+        result_3 = self.processor_3.process_activity_overview()
+        self.assertEqual(result_1, PROCESS_ACTIVITY_OVERVIEW_EXPECTED_1)
+        self.assertEqual(result_2, PROCESS_ACTIVITY_OVERVIEW_EXPECTED_2)
+        self.assertEqual(result_3, PROCESS_ACTIVITY_OVERVIEW_EXPECTED_3)
 
     def test_process_heart_rate_sample(self):
-        expected_output = [
-            {"sampleIndex": 0, "heartRate": "120"},
-            {"sampleIndex": 1, "heartRate": "130"},
-            {"sampleIndex": 2, "heartRate": "140"},
-            {"sampleIndex": 3, "heartRate": "150"},
-        ]
-        result = self.processor.process_heart_rate_sample()
-        self.assertEqual(result, expected_output)
+        result_1 = self.processor_1.process_heart_rate_sample()
+        result_2 = self.processor_2.process_heart_rate_sample()
+        self.assertEqual(result_1, PROCESS_HEART_RATE_SAMPLE_EXPECTED_1)
+        self.assertEqual(result_2, PROCESS_HEART_RATE_SAMPLE_EXPECTED_2)
 
     def test_process_laps_data(self):
-        expected_output = [
-            {
-                "startTime": 0,
-                "distance": 1000,
-                "duration": 600,
-                "heartRateSamples": [
-                    {"sampleIndex": 0, "heartRate": "120"},
-                    {"sampleIndex": 1, "heartRate": "130"},
-                    {"sampleIndex": 2, "heartRate": "140"},
-                    {"sampleIndex": 3, "heartRate": "150"},
-                ],
-            },
-            {
-                "startTime": 600,
-                "distance": 1000,
-                "duration": 600,
-                "heartRateSamples": [
-                    {"sampleIndex": 0, "heartRate": "120"},
-                    {"sampleIndex": 1, "heartRate": "130"},
-                    {"sampleIndex": 2, "heartRate": "140"},
-                    {"sampleIndex": 3, "heartRate": "150"},
-                ],
-            },
-        ]
-        result = self.processor.process_laps_data()
-        self.assertEqual(result, expected_output)
+        result_1 = self.processor_1.process_laps_data()
+        result_2 = self.processor_2.process_laps_data()
+        result_3 = self.processor_3.process_laps_data()
+        self.assertEqual(result_1, PROCESS_LAPS_DATA_1)
+        self.assertEqual(result_2, PROCESS_LAPS_DATA_2)
+        self.assertEqual(result_3, PROCESS_LAPS_DATA_3)
 
     def test_get_final_result(self):
-        result = json.loads(self.processor.get_final_result())
+        result_1 = json.loads(self.processor_1.get_final_result())
+        result_2 = json.loads(self.processor_2.get_final_result())
 
-        self.assertIn("activityOverview", result)
-        self.assertIn("laps", result)
+        self.assertIn("activityOverview", result_1)
+        self.assertIn("activityOverview", result_2)
+        self.assertIn("laps", result_1)
+        self.assertIn("laps", result_2)
 
-        expected_activity_overview = {
-            "userId": "12345",
-            "type": "Running",
-            "device": "Watch X",
-            "maxHeartRate": 180,
-            "duration": 3600,
-        }
-        self.assertEqual(result["activityOverview"], expected_activity_overview)
+        self.assertEqual(
+            result_1["activityOverview"], PROCESS_ACTIVITY_OVERVIEW_EXPECTED_1
+        )
+        self.assertEqual(
+            result_2["activityOverview"], PROCESS_ACTIVITY_OVERVIEW_EXPECTED_2
+        )
 
-        self.assertEqual(len(result["laps"]), 2)
+        self.assertEqual(len(result_1["laps"]), 2)
+        self.assertEqual(len(result_2["laps"]), 0)
 
 
 if __name__ == "__main__":
